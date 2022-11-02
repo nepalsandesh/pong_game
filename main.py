@@ -6,13 +6,18 @@ import random
 
 # ball animation 
 def ball_animation():
-    global ball_speed_x, ball_speed_y
+    global ball_speed_x, ball_speed_y, opponent_score, player_score
     
     ball.x += ball_speed_x
     ball.y += ball_speed_y
     
     # collisions at the 4-sides 
-    if ball.left <= 0 or ball.right >= screen_width:
+    if ball.left <= 0:
+        player_score+= 1
+        ball_restart()   
+
+    if ball.right >= screen_width:
+        opponent_score += 1
         ball_restart()   
         
     if ball.top <= 0 or ball.bottom >= screen_height:
@@ -78,6 +83,14 @@ ball_speed_y = 7
 player_speed = 0
 opponent_speed =  7
 
+# text variables
+player_score = 0
+opponent_score = 0
+game_font = pygame.font.Font("freesansbold.ttf", 32)
+
+
+
+
 
 
 # Main loop
@@ -122,6 +135,11 @@ while True:
     pygame.draw.rect(screen, light_grey, opponent)
     pygame.draw.ellipse(screen, light_grey, ball)
     pygame.draw.aaline(screen, light_grey, (screen_width/2, 0), (screen_width/2, screen_height))
+    
+    player_text = game_font.render(str(player_score), False, light_grey)
+    opponent_text = game_font.render(str(opponent_score), False, light_grey) 
+    screen.blit(player_text, (660, 470))
+    screen.blit(opponent_text, (600, 470))
              
     pygame.display.flip()
     clock.tick(FPS)
