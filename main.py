@@ -1,7 +1,35 @@
 import pygame
 import sys
 import random
+import csv
+import pandas as pd
+from sklearn import svm
+from sklearn.model_selection import train_test_split
+import numpy as np
+
 # import winsound
+
+
+# # CSV Stuffs-----------
+# header = ['ball_x', 'ball_y', 'player_y']
+# file = open('data.csv', 'w')
+# writer = csv.writer(file)
+# # writer.writerow(header)
+# # ---------------------
+
+
+# ML stuffs------------
+dataset = pd.read_csv('data.csv')
+dataset[dataset < 0] = 0
+X_train, X_test, y_train, y_test = train_test_split(dataset[['ball_x', 'ball_y']], dataset['player_y'], random_state=42)
+regr_model = svm.SVR()
+# regr_model.fit(X_train, y_train)
+regr_model.fit(dataset[['ball_x', 'ball_y']], dataset['player_y'])
+# ---------------------
+
+
+
+
 
 
 # ball animation 
@@ -45,6 +73,8 @@ def opponent_ai():
         opponent.top = 0
     if opponent.bottom >= screen_height:
         opponent.bottom = screen_height
+    
+
         
 def ball_restart():
     global ball_speed_y, ball_speed_x
@@ -123,8 +153,15 @@ while True:
             
     
     ball_animation()
-    player.y += player_speed
-    player_animation()
+    
+    # # This should be commented on AI play mode 
+    # player.y += player_speed
+    # player_animation()
+    
+    # # This should be commented on human play mode 
+    player_y = int(regr_model.predict([[ball.x, ball.y]]))
+    player.y = player_y
+    
     opponent_ai()
     
 
@@ -143,5 +180,11 @@ while True:
              
     pygame.display.flip()
     clock.tick(FPS)
+    
+    
+    # # ball and player position data, This section should be commented on AI play mode or if we already have data.
+    # position_data = [ball.x, ball.y, player.y]
+    # writer.writerow(position_data)
+    # # print(position_data)
     
     
