@@ -12,20 +12,44 @@ import numpy as np
 
 # # CSV Stuffs-----------
 # header = ['ball_x', 'ball_y', 'player_y']
-# file = open('data.csv', 'w')
+# file = open('data8.csv', 'w')
 # writer = csv.writer(file)
-# # writer.writerow(header)
+# writer.writerow(header)
 # # ---------------------
 
 
-# ML stuffs------------
-dataset = pd.read_csv('data.csv')
-dataset[dataset < 0] = 0
-X_train, X_test, y_train, y_test = train_test_split(dataset[['ball_x', 'ball_y']], dataset['player_y'], random_state=42)
+# ML stuffs---------------------------------------------------------------
+dataset = pd.read_csv('data3.csv')
+dataset['diff_ball_x'] = dataset['ball_x'].diff()
+dataset['diff_ball_y'] = dataset['ball_y'].diff()
+
+# define a function to compare the values between columns A and B
+def compare_values(row):
+    a = row['diff_ball_x']
+    b = row['diff_ball_y']
+    if a > 0 and b < 0:
+        return int(1)
+    elif a > 0 and b > 0:
+        return int(2)
+    elif a < 0 and b < 0:
+        return int(3)
+    elif a < 0 and b > 0:
+        return int(4)
+    else:
+        return int(5)
+    
+    
+dataset['ball_direction'] = dataset.apply(compare_values, axis=1)
+dataset.drop(0)
+dataset2 = dataset.drop(columns=['diff_ball_x', 'diff_ball_y'])
+dataset2.drop(0)
+
+
+X_train, X_test, y_train, y_test = train_test_split(dataset2[['ball_x', 'ball_y']], dataset2['player_y'], random_state=42)
 regr_model = svm.SVR()
 # regr_model.fit(X_train, y_train)
-regr_model.fit(dataset[['ball_x', 'ball_y']], dataset['player_y'])
-# ---------------------
+regr_model.fit(X_train,y_train)
+# ----------------------------------------------------------
 
 
 
@@ -85,11 +109,11 @@ def ball_restart():
 # General setup
 pygame.init()
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 120
 
 # setting up the main window
-screen_width = 1280
-screen_height = 960
+screen_width = 1920
+screen_height = 1000
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pong Game')
 
@@ -120,7 +144,9 @@ game_font = pygame.font.Font("freesansbold.ttf", 32)
 
 
 
-
+temp1 = 0
+temp2 = 0
+c = 0
 
 
 # Main loop
@@ -152,16 +178,7 @@ while True:
                 
             
     
-    ball_animation()
-    
-    # # This should be commented on AI play mode 
-    # player.y += player_speed
-    # player_animation()
-    
-    # # This should be commented on human play mode 
-    player_y = int(regr_model.predict([[ball.x, ball.y]]))
-    player.y = player_y
-    
+    ball_animation()   
     opponent_ai()
     
 
@@ -175,11 +192,44 @@ while True:
     
     player_text = game_font.render(str(player_score), False, light_grey)
     opponent_text = game_font.render(str(opponent_score), False, light_grey) 
-    screen.blit(player_text, (660, 470))
-    screen.blit(opponent_text, (600, 470))
-             
-    pygame.display.flip()
-    clock.tick(FPS)
+    screen.blit(player_text, (screen_width//2+40, screen_height//2))
+    screen.blit(opponent_text, (screen_width//2-40, screen_height//2))
+    
+    
+    
+    
+    
+    # # This should be commented on AI play mode 
+    # player.y += player_speed
+    # player_animation()
+    
+    # # This should be commented on human play mode 
+    ballx = ball.x
+    bally = ball.y
+    
+    dfx = ballx - temp1
+    dfy = bally - temp2
+
+    if dfx > 0 and dfy < 0:
+        c = int(1)
+    elif dfx > 0 and dfy > 0:
+        c =  int(2)
+    elif dfx < 0 and dfy < 0:
+        c = int(3)
+    elif dfx < 0 and dfy > 0:
+        c =  int(4)
+    else:
+        c =  int(5)
+    
+    
+    
+    
+    
+    player_y = int(regr_model.predict([[ball.x, ball.y]]))
+    player.y = player_y
+    
+    temp1 = ball.x
+    temp2 = ball.y
     
     
     # # ball and player position data, This section should be commented on AI play mode or if we already have data.
@@ -188,3 +238,5 @@ while True:
     # # print(position_data)
     
     
+    pygame.display.flip()
+    clock.tick(FPS)
