@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn import svm
 from sklearn.model_selection import train_test_split
 import numpy as np
+from save_video import ScreenSave
 
 # import winsound
 
@@ -113,7 +114,7 @@ FPS = 120
 
 # setting up the main window
 screen_width = 1920
-screen_height = 1000
+screen_height = 1080
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pong Game')
 
@@ -148,6 +149,11 @@ temp1 = 0
 temp2 = 0
 c = 0
 
+save_video = True
+Video = ScreenSave(screen, "captures", "videos")
+
+
+
 
 # Main loop
 while True:
@@ -156,11 +162,15 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            if save_video:
+                Video.save_video(fps=FPS)
             sys.exit()
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
+                if save_video:
+                    Video.save_video(fps=FPS)
                 sys.exit()
                 
             if event.key == pygame.K_DOWN:
@@ -236,6 +246,9 @@ while True:
     # position_data = [ball.x, ball.y, player.y]
     # writer.writerow(position_data)
     # # print(position_data)
+
+    if save_video:
+        Video.capture_image(screen)
     
     
     pygame.display.flip()
