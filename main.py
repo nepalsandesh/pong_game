@@ -7,7 +7,7 @@ from sklearn import svm
 from sklearn.model_selection import train_test_split
 import numpy as np
 from save_video import ScreenSave
-
+from data_preprocessing import left_right_direction, top_bottom_direction
 # import winsound
 
 
@@ -20,7 +20,7 @@ from save_video import ScreenSave
 
 
 # ML stuffs---------------------------------------------------------------
-dataset = pd.read_csv('data3.csv')
+dataset = pd.read_csv('data4.csv')
 dataset['diff_ball_x'] = dataset['ball_x'].diff()
 dataset['diff_ball_y'] = dataset['ball_y'].diff()
 
@@ -46,7 +46,17 @@ dataset2 = dataset.drop(columns=['diff_ball_x', 'diff_ball_y'])
 dataset2.drop(0)
 
 
-X_train, X_test, y_train, y_test = train_test_split(dataset2[['ball_x', 'ball_y']], dataset2['player_y'], random_state=42)
+# data pre-processing
+data_matrix = np.array(dataset2)
+dataset2["left_right_direction"] = left_right_direction(data_matrix)
+dataset2["top_bottom_direction"] = top_bottom_direction(data_matrix)
+
+
+print(dataset2.head())
+dataset2 = dataset2.sample(frac=1).reset_index(drop=True)
+print(dataset2.head())
+
+X_train, X_test, y_train, y_test = train_test_split(dataset2[['ball_x', 'ball_y', 'left_right_direction', 'top_bottom_direction']], dataset2['player_y'], random_state=42)
 regr_model = svm.SVR()
 # regr_model.fit(X_train, y_train)
 regr_model.fit(X_train,y_train)
@@ -149,7 +159,7 @@ temp1 = 0
 temp2 = 0
 c = 0
 
-save_video = True
+save_video = False
 Video = ScreenSave(screen, "captures", "videos")
 
 
@@ -233,9 +243,21 @@ while True:
     
     
     
-    
-    
-    player_y = int(regr_model.predict([[ball.x, ball.y]]))
+    left_right = 1
+    top_bottom = 1
+    if ball.x > temp1:
+        left_right = 1
+    else:
+        left_right = 0
+
+    if ball.y > temp2:
+        top_bottom = 1
+    else:
+        top_bottom = 0
+   
+
+
+    player_y = int(regr_model.predict([[ball.x, ball.y, left_right, top_bottom]]))
     player.y = player_y
     
     temp1 = ball.x
